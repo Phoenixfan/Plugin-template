@@ -3,7 +3,7 @@ plugins {
     id 'java'
 }
 
-group 'de.tammo'
+group 'de.phibsy'
 version '1.0'
 
 sourceCompatibility = 1.8
@@ -40,6 +40,13 @@ dependencies {
     //Adds the spigot api to your plugin
     compileOnly "org.spigotmc:spigot-api:${mcVersion}-R0.1-SNAPSHOT"
 
+    //lombok
+    compileOnly group: "org.projectlombok", name: "lombok", version: "1.18.20"
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.20'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+
     //Add your dependencies here
 }
 
@@ -55,7 +62,7 @@ processResources {
 task cleanPlugin() {
     group 'deploy'
     description 'Cleans the plugin in the working directory up'
-    delete 'working/plugins/' + project.property("pluginName") + '-' + project.version.toString() + '.jar'
+    delete "${projectDir}/working/plugins/" + project.property("pluginName") + '-' + project.version.toString() + '.jar'
 }
 
 task deploy(type: Copy, dependsOn: ['cleanPlugin', 'jar']) {
@@ -65,14 +72,14 @@ task deploy(type: Copy, dependsOn: ['cleanPlugin', 'jar']) {
     def pluginFolder = project.property('pluginFolder').toString()
 
     from shadowJar
-    into pluginFolder.isEmpty() ? 'working/plugins' : pluginFolder
+    into pluginFolder.isEmpty() ? "${projectDir}/working/plugins" : pluginFolder
 }
 
 task setupServer {
     group 'server'
     description 'Downloads the server jar'
 
-    def server = new File('working/server.jar')
+    def server = new File("${projectDir}/working/server.jar")
 
     if (server.exists()) {
         server.delete()
@@ -95,10 +102,18 @@ task setupServer {
         case '1.14.4':
             url = 'https://cdn.getbukkit.org/spigot/spigot-1.14.4.jar'
             break
+
+        case '1.16.5':
+            url = 'https://cdn.getbukkit.org/spigot/spigot-1.16.5.jar'
+            break
+
+        case '1.17.1':
+            url = 'https://cdn.getbukkit.org/spigot/spigot-1.17.1.jar'
+            break
     }
 
     if (url.isEmpty()) {
-        throw new GradleException('NOT A SUPPORTED VERSION, PLEASE USE [1.8.8, 1.12.2, 1.13.2]!')
+        throw new GradleException('NOT A SUPPORTED VERSION!')
     }
 
     new URL(url).withInputStream { i -> server.withOutputStream { it << i } }
